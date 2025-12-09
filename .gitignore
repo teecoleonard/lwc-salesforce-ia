@@ -1,0 +1,51 @@
+# Salesforce
+.sfdx/
+.sf/
+**/.sfdx/
+**/.sf/
+*.log
+*.zip
+
+# Excluir pasta salesforce-llm-backend
+salesforce-llm-backend/
+
+# Node modules (se houver)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Environment variables
+.env
+.env.local
+
+# Build outputs
+dist/
+build/
+*.js.map
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+

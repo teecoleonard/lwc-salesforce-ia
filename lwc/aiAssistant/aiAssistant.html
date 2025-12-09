@@ -1,0 +1,129 @@
+<template>
+    <lightning-card title="AI Assistant" icon-name="utility:bot">
+        <div class="slds-p-around_medium">
+            <!-- Contexto do registro atual (se disponível) -->
+            <template if:true={recordContext}>
+                <div class="slds-box slds-box_x-small slds-m-bottom_small context-box">
+                    <lightning-icon icon-name="utility:info" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    <span class="slds-text-body_small">
+                        <strong>Contexto:</strong> {recordContext}
+                    </span>
+                </div>
+            </template>
+
+            <!-- Aviso se não tem contexto -->
+            <template if:false={recordContext}>
+                <template if:true={recordId}>
+                    <div class="slds-box slds-box_x-small slds-theme_info slds-m-bottom_small">
+                        <lightning-icon icon-name="utility:info" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        <span class="slds-text-body_small">
+                            <strong>Modo sem contexto:</strong> O componente não conseguiu detectar automaticamente o registro. 
+                            Você pode fazer perguntas gerais ou mencionar o ID do registro na pergunta.
+                        </span>
+                    </div>
+                </template>
+                <template if:false={recordId}>
+                    <div class="slds-box slds-box_x-small slds-theme_warning slds-m-bottom_small">
+                        <lightning-icon icon-name="utility:warning" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        <span class="slds-text-body_small">
+                            <strong>Atenção:</strong> Nenhum registro detectado. Faça perguntas gerais ou informe o ID do registro na pergunta.
+                        </span>
+                    </div>
+                </template>
+            </template>
+
+            <!-- Campo de input -->
+            <lightning-textarea 
+                label="Pergunta" 
+                value={prompt} 
+                onchange={handleChange}
+                placeholder="Ex: Resuma este registro, Quais são os próximos passos? Ou: Analise o registro 001XXXXXXXXXXXXXXX"
+                class="slds-m-bottom_small">
+            </lightning-textarea>
+
+            <!-- Botões de ação rápida -->
+            <div class="buttons-container">
+                <lightning-button 
+                    variant="brand" 
+                    label="Perguntar" 
+                    onclick={send}
+                    disabled={loading}
+                    class="button-left">
+                </lightning-button>
+                <lightning-button 
+                    variant="neutral" 
+                    label="Limpar" 
+                    onclick={clear}
+                    disabled={loading}
+                    class="button-right">
+                </lightning-button>
+            </div>
+
+            <!-- Ações rápidas -->
+            <div class="slds-m-bottom_small">
+                <lightning-button-menu 
+                    label="Ações Rápidas" 
+                    alternative-text="Mais opções"
+                    icon-name="utility:down"
+                    variant="border-filled">
+                    <lightning-menu-item 
+                        value="summarize" 
+                        label="Resumir Registro"
+                        onclick={handleQuickAction}>
+                    </lightning-menu-item>
+                    <lightning-menu-item 
+                        value="nextSteps" 
+                        label="Próximos Passos"
+                        onclick={handleQuickAction}>
+                    </lightning-menu-item>
+                    <lightning-menu-item 
+                        value="relatedRecords" 
+                        label="Registros Relacionados"
+                        onclick={handleQuickAction}>
+                    </lightning-menu-item>
+                    <lightning-menu-item 
+                        value="suggestions" 
+                        label="Sugestões"
+                        onclick={handleQuickAction}>
+                    </lightning-menu-item>
+                </lightning-button-menu>
+            </div>
+
+            <!-- Loading -->
+            <template if:true={loading}>
+                <div class="slds-align_absolute-center slds-m-vertical_medium">
+                    <lightning-spinner alternative-text="Processando" size="small"></lightning-spinner>
+                    <p class="slds-m-top_small slds-text-align_center">Analisando sua pergunta...</p>
+                </div>
+            </template>
+
+            <!-- Erro -->
+            <template if:true={error}>
+                <div class="slds-box slds-box_x-small slds-theme_error slds-m-top_small">
+                    <lightning-icon icon-name="utility:error" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    <strong>Erro:</strong> {error}
+                </div>
+            </template>
+
+            <!-- Resposta -->
+            <template if:true={response}>
+                <div class="slds-box slds-m-top_small response-box">
+                    <div class="slds-text-heading_small slds-m-bottom_x-small">
+                        <lightning-icon icon-name="utility:success" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        Resposta:
+                    </div>
+                    <div class="response-content">{response}</div>
+                </div>
+            </template>
+
+            <!-- Erro -->
+            <template if:true={error}>
+                <div class="slds-box slds-box_x-small slds-theme_error slds-m-top_small">
+                    <lightning-icon icon-name="utility:error" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    <span class="slds-text-body_small">{error}</span>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>
+

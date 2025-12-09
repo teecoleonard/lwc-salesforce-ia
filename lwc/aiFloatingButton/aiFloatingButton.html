@@ -1,0 +1,231 @@
+<template>
+    <div class="ai-assistant-container">
+        <!-- ============================================ -->
+        <!-- BOTÃO FLUTUANTE PRINCIPAL -->
+        <!-- ============================================ -->
+        <button 
+            class="floating-button"
+            onclick={togglePanel}
+            title="Fale com a IA Assistant">
+            <lightning-icon 
+                icon-name="utility:chat" 
+                size="medium"
+                alternative-text="IA Assistant"
+                class="button-icon">
+            </lightning-icon>
+            <span class="button-text">Fale com a IA Assistant</span>
+        </button>
+
+        <!-- ============================================ -->
+        <!-- PAINEL DE CHAT (abre/fecha) -->
+        <!-- ============================================ -->
+        <template if:true={isOpen}>
+            <div class="chat-panel">
+                <!-- Header do Chat -->
+                <header class="chat-header">
+                    <div class="header-left">
+                        <div class="header-title-row">
+                            <template if:true={userIdForAvatar}>
+                                <lightning-avatar 
+                                    record-id={userIdForAvatar}
+                                    size="small"
+                                    variant="circle"
+                                    class="user-avatar">
+                                </lightning-avatar>
+                            </template>
+                            <div class="header-title-content">
+                                <h2 class="chat-title">AI Assistant</h2>
+                                <template if:true={hasUserData}>
+                                    <span class="user-name">{userName}</span>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button 
+                            class="icon-button"
+                            onclick={toggleHistoryModal}
+                            title="Histórico de Conversas">
+                            <lightning-icon icon-name="utility:clock" size="small"></lightning-icon>
+                        </button>
+                        <lightning-button 
+                            variant="neutral" 
+                            label="Novo Chat" 
+                            icon-name="utility:add"
+                            onclick={newChat}
+                            class="new-chat-button">
+                        </lightning-button>
+                    </div>
+                </header>
+                
+                <!-- Área de Mensagens (scrollável) -->
+                <section class="messages-section">
+                    <!-- Aviso de contexto -->
+                    <template if:false={recordContext}>
+                        <template if:true={recordId}>
+                            <div class="info-banner info-warning">
+                                <lightning-icon icon-name="utility:info" size="x-small"></lightning-icon>
+                                <span>Modo sem contexto: O componente não conseguiu detectar automaticamente o registro.</span>
+                            </div>
+                        </template>
+                    </template>
+                    
+                    <!-- Contexto carregado -->
+                    <template if:true={recordContext}>
+                        <div class="info-banner info-success">
+                            <lightning-icon icon-name="utility:success" size="x-small"></lightning-icon>
+                            <span>Contexto carregado: {objectApiName} (ID: {recordId})</span>
+                        </div>
+                    </template>
+                    
+                    <!-- Lista de Mensagens -->
+                    <div class="messages-list">
+                        <template if:true={messages.length}>
+                            <template for:each={messages} for:item="message">
+                                <div key={message.id} class="message-item">
+                                    <template if:true={message.isUser}>
+                                        <div class="message message-user">
+                                            <div class="message-text">{message.content}</div>
+                                        </div>
+                                    </template>
+                                    <template if:false={message.isUser}>
+                                        <div class="message message-assistant">
+                                            <div class="message-text">{message.content}</div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </template>
+                        
+                        <!-- Estado vazio -->
+                        <template if:false={messages.length}>
+                            <div class="empty-state">
+                                <lightning-icon icon-name="utility:bot" size="large" class="empty-icon"></lightning-icon>
+                                <p class="empty-text">Olá! Como posso ajudar você hoje?</p>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <!-- Loading -->
+                    <template if:true={loading}>
+                        <div class="loading-indicator">
+                            <lightning-spinner alternative-text="Processando" size="small"></lightning-spinner>
+                            <span class="loading-text">Analisando sua pergunta...</span>
+                        </div>
+                    </template>
+                    
+                    <!-- Erro -->
+                    <template if:true={error}>
+                        <div class="error-banner">
+                            <lightning-icon icon-name="utility:error" size="x-small"></lightning-icon>
+                            <span>{error}</span>
+                        </div>
+                    </template>
+                </section>
+                
+                <!-- Área de Input (fixa na parte inferior) -->
+                <footer class="input-section">
+                    <!-- Campo para recordId manual -->
+                    <template if:true={showManualInput}>
+                        <div class="manual-input-wrapper">
+                            <lightning-input 
+                                label="ID do Registro (opcional)" 
+                                value={manualRecordId} 
+                                onchange={handleManualRecordIdChange}
+                                placeholder="Ex: 001XXXXXXXXXXXXXXX">
+                            </lightning-input>
+                        </div>
+                    </template>
+                    
+                    <!-- Ações Rápidas -->
+                    <div class="quick-actions-wrapper">
+                        <lightning-button-menu 
+                            label="Ações Rápidas" 
+                            alternative-text="Mais opções"
+                            icon-name="utility:down"
+                            variant="border-filled"
+                            size="small">
+                            <lightning-menu-item 
+                                value="summarize" 
+                                label="Resumir Registro"
+                                onselect={handleQuickAction}>
+                            </lightning-menu-item>
+                            <lightning-menu-item 
+                                value="nextSteps" 
+                                label="Próximos Passos"
+                                onselect={handleQuickAction}>
+                            </lightning-menu-item>
+                            <lightning-menu-item 
+                                value="relatedRecords" 
+                                label="Registros Relacionados"
+                                onselect={handleQuickAction}>
+                            </lightning-menu-item>
+                            <lightning-menu-item 
+                                value="suggestions" 
+                                label="Sugestões"
+                                onselect={handleQuickAction}>
+                            </lightning-menu-item>
+                        </lightning-button-menu>
+                    </div>
+                    
+                    <!-- Input e Botão Enviar -->
+                    <div class="input-row">
+                        <lightning-textarea 
+                            value={prompt} 
+                            onchange={handleChange}
+                            oninput={handleChange}
+                            placeholder="Digite sua pergunta..."
+                            class="message-input">
+                        </lightning-textarea>
+                        <lightning-button 
+                            variant="destructive" 
+                            icon-name="utility:send"
+                            onclick={handleSendClick}
+                            disabled={loading}
+                            class="send-button"
+                            title="Enviar">
+                        </lightning-button>
+                    </div>
+                </footer>
+            </div>
+            
+            <template if:true={showHistoryModal}>
+                <div class="modal-overlay" onclick={toggleHistoryModal}>
+                    <div class="modal-content" onclick={stopPropagation}>
+                        <header class="modal-header">
+                            <h3 class="modal-title">Histórico de Conversas</h3>
+                            <button class="modal-close" onclick={toggleHistoryModal}>
+                                <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                            </button>
+                        </header>
+                        <section class="modal-body">
+                            <template if:true={chatHistory.length}>
+                                <template for:each={chatHistory} for:item="chat">
+                                    <div 
+                                        key={chat.id} 
+                                        class="history-item" 
+                                        data-chat-id={chat.id} 
+                                        onclick={loadChatFromHistory}>
+                                        <div class="history-item-title">{chat.title}</div>
+                                        <div class="history-item-meta">
+                                            <span class="history-item-time">{chat.timestamp}</span>
+                                            <template if:true={chat.objectApiName}>
+                                                <span class="history-item-context">{chat.objectApiName}</span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </template>
+                            <template if:false={chatHistory.length}>
+                                <div class="empty-history">
+                                    <lightning-icon icon-name="utility:clock" size="large"></lightning-icon>
+                                    <p>Nenhuma conversa salva ainda.</p>
+                                </div>
+                            </template>
+                        </section>
+                    </div>
+                </div>
+            </template>
+        </template>
+    </div>
+</template>

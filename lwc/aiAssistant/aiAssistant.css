@@ -1,0 +1,64 @@
+.response-box {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #f3f3f3;
+    border-left: 4px solid #0176d3;
+    min-height: 50px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.response-content {
+    line-height: 1.5;
+    color: #080707;
+}
+
+.context-box {
+    background-color: #e8f4f8;
+    border-left: 3px solid #0176d3;
+    padding: 8px;
+}
+
+/* Estilo para Utility Bar */
+.slds-card {
+    height: 100%;
+}
+
+.slds-card__body {
+    height: calc(100% - 60px);
+    overflow-y: auto;
+}
+
+/* Botões sem espaçamento - lado a lado */
+.buttons-container {
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+}
+
+.buttons-container lightning-button {
+    flex: 1;
+    margin: 0 !important;
+}
+
+.button-left {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.button-right {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+/* Posicionamento do ícone na Utility Bar - lado direito */
+:host {
+    display: block;
+}
+
+/* Garante que o painel abra do lado direito */
+.slds-card {
+    position: relative;
+    float: right;
+}
+

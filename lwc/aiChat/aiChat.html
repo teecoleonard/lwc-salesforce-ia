@@ -1,0 +1,27 @@
+<template>
+  <lightning-card title="AI Assistant">
+    <div class="slds-p-around_medium">
+      <lightning-textarea label="Pergunta" value={prompt} onchange={handleChange}></lightning-textarea>
+      
+      <div class="slds-m-top_medium">
+        <lightning-button variant="brand" label="Perguntar" onclick={send} class="slds-m-right_small"></lightning-button>
+        <lightning-button variant="neutral" label="Limpar" onclick={clear}></lightning-button>
+      </div>
+
+      <template if:true={loading}>
+        <div class="slds-m-top_medium">
+          <lightning-spinner alternative-text="Carregando" size="small"></lightning-spinner>
+          <p class="slds-m-top_small">Analisando sua pergunta...</p>
+        </div>
+      </template>
+
+      <template if:true={response}>
+        <div class="slds-m-top_medium">
+          <p class="slds-text-heading_small"><strong>Resposta:</strong></p>
+          <div class="slds-box slds-m-top_small slds-p-around_medium response-box">{response}</div>
+        </div>
+      </template>
+    </div>
+  </lightning-card>
+</template>
+
