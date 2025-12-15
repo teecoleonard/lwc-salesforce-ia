@@ -1,0 +1,108 @@
+<template>
+    <lightning-card title="Gerador de Massa de Dados" icon-name="utility:data_mapping">
+        <div class="slds-p-around_medium">
+            <!-- Seção de Geração -->
+            <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                <h2 class="slds-text-heading_small slds-m-bottom_small">Gerar Dados</h2>
+                
+                <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-combobox
+                            label="Tipo de Objeto"
+                            value={selectedObject}
+                            options={objectOptions}
+                            onchange={handleObjectChange}>
+                        </lightning-combobox>
+                    </div>
+                    
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input
+                            type="number"
+                            label="Quantidade"
+                            value={quantity}
+                            min="1"
+                            max="1000"
+                            onchange={handleQuantityChange}>
+                        </lightning-input>
+                    </div>
+                </div>
+
+                <lightning-button
+                    variant="brand"
+                    label="Gerar Dados"
+                    title="Gerar Dados"
+                    onclick={handleGenerate}
+                    disabled={isGenerating}
+                    class="slds-m-right_small">
+                </lightning-button>
+
+                <lightning-button
+                    variant="neutral"
+                    label={showDeleteSection ? 'Ocultar Exclusão' : 'Mostrar Exclusão'}
+                    title="Toggle Delete Section"
+                    onclick={toggleDeleteSection}>
+                </lightning-button>
+            </div>
+
+            <!-- Seção de Exclusão -->
+            <template if:true={showDeleteSection}>
+                <div class="slds-box slds-theme_error slds-m-bottom_medium">
+                    <h2 class="slds-text-heading_small slds-m-bottom_small slds-text-color_error">
+                        Excluir Dados de Teste
+                    </h2>
+                    
+                    <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                        <div class="slds-col slds-size_1-of-2">
+                            <lightning-combobox
+                                label="Tipo de Objeto"
+                                value={deleteObjectType}
+                                options={deleteObjectOptions}
+                                onchange={handleDeleteObjectChange}>
+                            </lightning-combobox>
+                        </div>
+                        
+                        <div class="slds-col slds-size_1-of-2">
+                            <lightning-input
+                                type="number"
+                                label="Dias (registros criados nos últimos X dias)"
+                                value={deleteDaysOld}
+                                min="0"
+                                onchange={handleDeleteDaysChange}>
+                            </lightning-input>
+                        </div>
+                    </div>
+
+                    <lightning-button
+                        variant="destructive"
+                        label="Excluir Dados"
+                        title="Excluir Dados"
+                        onclick={handleDelete}
+                        disabled={isDeleting}>
+                    </lightning-button>
+                </div>
+            </template>
+
+            <!-- Resultado -->
+            <template if:true={resultMessage}>
+                <div class="slds-box slds-theme_info slds-m-top_medium">
+                    <h3 class="slds-text-heading_small slds-m-bottom_small">Resultado</h3>
+                    <pre class="slds-text-body_regular">{resultMessage}</pre>
+                </div>
+            </template>
+
+            <!-- Loading Spinner -->
+            <template if:true={isGenerating}>
+                <div class="slds-is-relative slds-m-top_medium">
+                    <lightning-spinner alternative-text="Gerando dados..." size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <template if:true={isDeleting}>
+                <div class="slds-is-relative slds-m-top_medium">
+                    <lightning-spinner alternative-text="Excluindo dados..." size="medium"></lightning-spinner>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>
+
