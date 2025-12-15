@@ -17,18 +17,31 @@ if (-not (Get-Command sf -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-# Verifica se o componente existe
-if (-not (Test-Path "lwc\dataGenerator")) {
-    Write-Host "ERRO: Componente dataGenerator nao encontrado!" -ForegroundColor Red
-    exit 1
-} else {
+# Verifica se os componentes existem
+$componentsFound = $false
+
+if (Test-Path "lwc\aiFloatingButton") {
+    $componentsFound = $true
+    Write-Host "Componente aiFloatingButton encontrado" -ForegroundColor Green
+}
+
+if (Test-Path "lwc\dataGenerator") {
+    $componentsFound = $true
     Write-Host "Componente dataGenerator encontrado" -ForegroundColor Green
 }
 
+if (-not $componentsFound) {
+    Write-Host "AVISO: Nenhum componente LWC encontrado!" -ForegroundColor Yellow
+}
+
+if (-not (Test-Path "force-app\main\default\classes\AIController.cls")) {
+    Write-Host "AVISO: Classe AIController nao encontrada!" -ForegroundColor Yellow
+    Write-Host "O componente aiFloatingButton pode nao funcionar sem a classe Apex." -ForegroundColor Yellow
+}
+
 if (-not (Test-Path "force-app\main\default\classes\DataGeneratorController.cls")) {
-    Write-Host "ERRO: Classe DataGeneratorController nao encontrada!" -ForegroundColor Red
+    Write-Host "AVISO: Classe DataGeneratorController nao encontrada!" -ForegroundColor Yellow
     Write-Host "O componente dataGenerator nao funcionara sem a classe Apex." -ForegroundColor Yellow
-    exit 1
 }
 
 # Verifica se esta autorizado
@@ -90,55 +103,78 @@ if (-not (Test-Path "sfdx-project.json")) {
     $projectJson | Out-File -FilePath "sfdx-project.json" -Encoding UTF8
 }
 
-# Faz o deploy da classe Apex primeiro
-Write-Host ""
-Write-Host "Fazendo deploy da classe Apex DataGeneratorController..." -ForegroundColor Yellow
-$apexDeployOutput = sf project deploy start -d force-app/main/default/classes/DataGeneratorController.cls -o $OrgName 2>&1
+# Faz o deploy das classes Apex primeiro
+$apexDeploySuccess = $true
 
-$apexDeploySuccess = $false
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "Classe DataGeneratorController deployada com sucesso!" -ForegroundColor Green
-    $apexDeploySuccess = $true
-    # Aguarda um pouco para garantir que a classe esteja disponível
-    Write-Host "Aguardando processamento da classe..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 3
-} else {
-    Write-Host "ERRO no deploy da classe DataGeneratorController." -ForegroundColor Red
-    Write-Host $apexDeployOutput -ForegroundColor Red
+if (Test-Path "force-app\main\default\classes\AIController.cls") {
+    Write-Host ""
+    Write-Host "Fazendo deploy da classe Apex AIController..." -ForegroundColor Yellow
+    sf project deploy start -d force-app/main/default/classes/AIController.cls -o $OrgName
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERRO no deploy da classe AIController. Continuando..." -ForegroundColor Yellow
+        $apexDeploySuccess = $false
+    } else {
+        Write-Host "Classe AIController deployada com sucesso!" -ForegroundColor Green
+    }
 }
 
-# Faz o deploy do componente LWC apenas se a classe foi deployada com sucesso
-$lwcDeploySuccess = $false
-if ($apexDeploySuccess) {
+if (Test-Path "force-app\main\default\classes\DataGeneratorController.cls") {
+    Write-Host ""
+    Write-Host "Fazendo deploy da classe Apex DataGeneratorController..." -ForegroundColor Yellow
+    sf project deploy start -d force-app/main/default/classes/DataGeneratorController.cls -o $OrgName
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERRO no deploy da classe DataGeneratorController. Continuando..." -ForegroundColor Yellow
+        $apexDeploySuccess = $false
+    } else {
+        Write-Host "Classe DataGeneratorController deployada com sucesso!" -ForegroundColor Green
+    }
+}
+
+# Faz o deploy dos componentes LWC
+$lwcDeploySuccess = $true
+
+if (Test-Path "lwc\aiFloatingButton") {
+    Write-Host ""
+    Write-Host "Fazendo deploy do componente aiFloatingButton..." -ForegroundColor Yellow
+    sf project deploy start -d lwc/aiFloatingButton -o $OrgName
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERRO no deploy do componente aiFloatingButton." -ForegroundColor Yellow
+        $lwcDeploySuccess = $false
+    } else {
+        Write-Host "Componente aiFloatingButton deployado com sucesso!" -ForegroundColor Green
+    }
+}
+
+if (Test-Path "lwc\dataGenerator") {
     Write-Host ""
     Write-Host "Fazendo deploy do componente dataGenerator..." -ForegroundColor Yellow
-    $lwcDeployOutput = sf project deploy start -d lwc/dataGenerator -o $OrgName 2>&1
+    sf project deploy start -d lwc/dataGenerator -o $OrgName
     
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "Componente dataGenerator deployado com sucesso!" -ForegroundColor Green
-        $lwcDeploySuccess = $true
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERRO no deploy do componente dataGenerator." -ForegroundColor Yellow
+        $lwcDeploySuccess = $false
     } else {
-        Write-Host "ERRO no deploy do componente dataGenerator." -ForegroundColor Red
-        Write-Host $lwcDeployOutput -ForegroundColor Red
+        Write-Host "Componente dataGenerator deployado com sucesso!" -ForegroundColor Green
     }
-} else {
-    Write-Host ""
-    Write-Host "Pulando deploy do componente LWC porque a classe Apex falhou." -ForegroundColor Yellow
 }
-
-$deploySuccess = $apexDeploySuccess -and $lwcDeploySuccess
 
 # Resumo final
 Write-Host ""
-if ($deploySuccess) {
+if ($apexDeploySuccess -and $lwcDeploySuccess) {
     Write-Host "Deploy concluido com sucesso!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Proximos passos:" -ForegroundColor Cyan
     Write-Host "   1. Acesse: https://curious-raccoon-h5tx8a-dev-ed.trailblaze.lightning.force.com" -ForegroundColor White
     Write-Host "   2. Va para: Setup -> Custom Code -> Lightning Components" -ForegroundColor White
-    Write-Host "   3. Verifique se 'dataGenerator' aparece na lista" -ForegroundColor White
-    Write-Host "   4. Adicione o componente a uma pagina no App Builder (App Page, Record Page, etc.)" -ForegroundColor White
-    Write-Host "   5. Use o componente para gerar massas de dados (Leads e Accounts)" -ForegroundColor White
+    Write-Host "   3. Verifique se os componentes aparecem na lista:" -ForegroundColor White
+    Write-Host "      - aiFloatingButton (requer AIController)" -ForegroundColor White
+    Write-Host "      - dataGenerator (requer DataGeneratorController)" -ForegroundColor White
+    Write-Host "   4. Adicione os componentes a uma pagina no App Builder (App Page, Record Page, etc.)" -ForegroundColor White
+    Write-Host "   5. Para aiFloatingButton: Configure o Named Credential 'LLM_CONNECTOR' apontando para sua API" -ForegroundColor White
+    Write-Host "   6. Para dataGenerator: Use diretamente para gerar massas de dados (Leads e Accounts)" -ForegroundColor White
     Write-Host ""
     Write-Host "Abrir org no navegador? (S/N)" -ForegroundColor Yellow
     $open = Read-Host

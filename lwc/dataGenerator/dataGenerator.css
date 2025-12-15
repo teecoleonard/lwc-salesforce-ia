@@ -18,6 +18,10 @@
     border-color: #0070d2;
 }
 
+.slds-theme_info h3 {
+    color: #0070d2;
+}
+
 pre {
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -25,6 +29,7 @@ pre {
     font-size: 0.875rem;
     line-height: 1.5;
     margin: 0;
+    color: #0070d2;
 }
 
 .slds-is-relative {
