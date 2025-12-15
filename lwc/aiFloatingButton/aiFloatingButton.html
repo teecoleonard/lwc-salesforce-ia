@@ -1,8 +1,5 @@
 <template>
     <div class="ai-assistant-container">
-        <!-- ============================================ -->
-        <!-- BOTÃO FLUTUANTE PRINCIPAL -->
-        <!-- ============================================ -->
         <button 
             class="floating-button"
             onclick={togglePanel}
@@ -15,10 +12,6 @@
             </lightning-icon>
             <span class="button-text">Fale com a IA Assistant</span>
         </button>
-
-        <!-- ============================================ -->
-        <!-- PAINEL DE CHAT (abre/fecha) -->
-        <!-- ============================================ -->
         <template if:true={isOpen}>
             <div class="chat-panel">
                 <!-- Header do Chat -->
@@ -60,7 +53,6 @@
                 
                 <!-- Área de Mensagens (scrollável) -->
                 <section class="messages-section">
-                    <!-- Aviso de contexto -->
                     <template if:false={recordContext}>
                         <template if:true={recordId}>
                             <div class="info-banner info-warning">
@@ -125,7 +117,6 @@
                 
                 <!-- Área de Input (fixa na parte inferior) -->
                 <footer class="input-section">
-                    <!-- Campo para recordId manual -->
                     <template if:true={showManualInput}>
                         <div class="manual-input-wrapper">
                             <lightning-input 

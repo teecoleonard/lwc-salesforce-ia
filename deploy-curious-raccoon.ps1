@@ -124,3 +124,6 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "ERRO no deploy. Verifique os logs acima." -ForegroundColor Red
     exit 1
 }
+
+
+#Script em PowerSheel gerado por IA para deploy dentro do ambiente
