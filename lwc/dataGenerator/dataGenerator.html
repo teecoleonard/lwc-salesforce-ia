@@ -1,9 +1,9 @@
 <template>
-    <lightning-card title="Gerador de Massa de Dados" icon-name="utility:data_mapping">
+    <lightning-card title="Gerador de massa de dados" icon-name="utility:data_mapping">
         <div class="slds-p-around_medium">
             <!-- Seção de Geração -->
             <div class="slds-box slds-theme_shade slds-m-bottom_medium">
-                <h2 class="slds-text-heading_small slds-m-bottom_small">Gerar Dados</h2>
+                <h2 class="slds-text-heading_small slds-m-bottom_small slds-text-color_default">Gerar dados</h2>
                 
                 <div class="slds-grid slds-gutters slds-m-bottom_medium">
                     <div class="slds-col slds-size_1-of-2">
@@ -48,7 +48,7 @@
             <template if:true={showDeleteSection}>
                 <div class="slds-box slds-theme_error slds-m-bottom_medium">
                     <h2 class="slds-text-heading_small slds-m-bottom_small slds-text-color_error">
-                        Excluir Dados de Teste
+                        Excluir dados de teste
                     </h2>
                     
                     <div class="slds-grid slds-gutters slds-m-bottom_medium">
@@ -64,7 +64,7 @@
                         <div class="slds-col slds-size_1-of-2">
                             <lightning-input
                                 type="number"
-                                label="Dias (registros criados nos últimos X dias)"
+                                label="Dias (últimos X dias)"
                                 value={deleteDaysOld}
                                 min="0"
                                 onchange={handleDeleteDaysChange}>
@@ -74,8 +74,8 @@
 
                     <lightning-button
                         variant="destructive"
-                        label="Excluir Dados"
-                        title="Excluir Dados"
+                        label="Excluir dados"
+                        title="Excluir dados"
                         onclick={handleDelete}
                         disabled={isDeleting}>
                     </lightning-button>
