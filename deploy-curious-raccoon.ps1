@@ -104,18 +104,22 @@ if (-not (Test-Path "sfdx-project.json")) {
 }
 
 # Faz o deploy das classes Apex primeiro
-$apexDeploySuccess = $true
+# Rastreia o sucesso de cada classe individualmente
+$aiControllerDeploySuccess = $false
+$dataGeneratorControllerDeploySuccess = $false
 
 if (Test-Path "force-app\main\default\classes\AIController.cls") {
     Write-Host ""
     Write-Host "Fazendo deploy da classe Apex AIController..." -ForegroundColor Yellow
     sf project deploy start -d force-app/main/default/classes/AIController.cls -o $OrgName
+    $exitCode = $LASTEXITCODE
     
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERRO no deploy da classe AIController. Continuando..." -ForegroundColor Yellow
-        $apexDeploySuccess = $false
-    } else {
+    if ($exitCode -eq 0) {
         Write-Host "Classe AIController deployada com sucesso!" -ForegroundColor Green
+        $aiControllerDeploySuccess = $true
+    } else {
+        Write-Host "ERRO no deploy da classe AIController." -ForegroundColor Red
+        $aiControllerDeploySuccess = $false
     }
 }
 
@@ -123,43 +127,75 @@ if (Test-Path "force-app\main\default\classes\DataGeneratorController.cls") {
     Write-Host ""
     Write-Host "Fazendo deploy da classe Apex DataGeneratorController..." -ForegroundColor Yellow
     sf project deploy start -d force-app/main/default/classes/DataGeneratorController.cls -o $OrgName
+    $exitCode = $LASTEXITCODE
     
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERRO no deploy da classe DataGeneratorController. Continuando..." -ForegroundColor Yellow
-        $apexDeploySuccess = $false
-    } else {
+    if ($exitCode -eq 0) {
         Write-Host "Classe DataGeneratorController deployada com sucesso!" -ForegroundColor Green
+        $dataGeneratorControllerDeploySuccess = $true
+        # Aguarda um pouco para garantir que a classe esteja disponível
+        Write-Host "Aguardando processamento da classe..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 3
+    } else {
+        Write-Host "ERRO no deploy da classe DataGeneratorController." -ForegroundColor Red
+        $dataGeneratorControllerDeploySuccess = $false
     }
 }
 
-# Faz o deploy dos componentes LWC
-$lwcDeploySuccess = $true
+# Faz o deploy dos componentes LWC apenas se suas classes Apex foram deployadas com sucesso
+$lwcDeploySuccess = $null  # null = nenhum componente encontrado, true = sucesso, false = falha
+$lwcComponentsFound = $false
 
 if (Test-Path "lwc\aiFloatingButton") {
-    Write-Host ""
-    Write-Host "Fazendo deploy do componente aiFloatingButton..." -ForegroundColor Yellow
-    sf project deploy start -d lwc/aiFloatingButton -o $OrgName
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERRO no deploy do componente aiFloatingButton." -ForegroundColor Yellow
-        $lwcDeploySuccess = $false
+    $lwcComponentsFound = $true
+    if ($aiControllerDeploySuccess) {
+        Write-Host ""
+        Write-Host "Fazendo deploy do componente aiFloatingButton..." -ForegroundColor Yellow
+        sf project deploy start -d lwc/aiFloatingButton -o $OrgName
+        $exitCode = $LASTEXITCODE
+        
+        if ($exitCode -eq 0) {
+            Write-Host "Componente aiFloatingButton deployado com sucesso!" -ForegroundColor Green
+            if ($null -eq $lwcDeploySuccess) { $lwcDeploySuccess = $true }
+        } else {
+            Write-Host "ERRO no deploy do componente aiFloatingButton." -ForegroundColor Red
+            $lwcDeploySuccess = $false
+        }
     } else {
-        Write-Host "Componente aiFloatingButton deployado com sucesso!" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Pulando deploy do componente aiFloatingButton porque AIController falhou." -ForegroundColor Yellow
+        $lwcDeploySuccess = $false
     }
 }
 
 if (Test-Path "lwc\dataGenerator") {
-    Write-Host ""
-    Write-Host "Fazendo deploy do componente dataGenerator..." -ForegroundColor Yellow
-    sf project deploy start -d lwc/dataGenerator -o $OrgName
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERRO no deploy do componente dataGenerator." -ForegroundColor Yellow
-        $lwcDeploySuccess = $false
+    $lwcComponentsFound = $true
+    if ($dataGeneratorControllerDeploySuccess) {
+        Write-Host ""
+        Write-Host "Fazendo deploy do componente dataGenerator..." -ForegroundColor Yellow
+        sf project deploy start -d lwc/dataGenerator -o $OrgName
+        $exitCode = $LASTEXITCODE
+        
+        if ($exitCode -eq 0) {
+            Write-Host "Componente dataGenerator deployado com sucesso!" -ForegroundColor Green
+            if ($null -eq $lwcDeploySuccess) { $lwcDeploySuccess = $true }
+        } else {
+            Write-Host "ERRO no deploy do componente dataGenerator." -ForegroundColor Red
+            $lwcDeploySuccess = $false
+        }
     } else {
-        Write-Host "Componente dataGenerator deployado com sucesso!" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Pulando deploy do componente dataGenerator porque DataGeneratorController falhou." -ForegroundColor Yellow
+        $lwcDeploySuccess = $false
     }
 }
+
+# Se nenhum componente LWC foi encontrado, não afeta o resultado do deploy
+if (-not $lwcComponentsFound) {
+    $lwcDeploySuccess = $true  # Nenhum componente para deployar = não é uma falha
+}
+
+# Calcula sucesso geral do deploy Apex
+$apexDeploySuccess = $aiControllerDeploySuccess -or $dataGeneratorControllerDeploySuccess
 
 # Resumo final
 Write-Host ""
