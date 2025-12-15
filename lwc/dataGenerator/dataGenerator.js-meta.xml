@@ -7,10 +7,5 @@
         <target>lightning__RecordPage</target>
         <target>lightning__HomePage</target>
     </targets>
-    <targetConfigs>
-        <targetConfig targets="lightning__AppPage,lightning__HomePage,lightning__RecordPage">
-            <property name="cardTitle" type="String" default="Gerador de Massa de Dados" label="Título do Card"/>
-        </targetConfig>
-    </targetConfigs>
 </LightningComponentBundle>
 

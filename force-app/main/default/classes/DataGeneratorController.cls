@@ -293,9 +293,9 @@ public with sharing class DataGeneratorController {
         return account;
     }
     
-    private static String getRandomElement(List<String> list) {
-        Integer index = (Integer)(Math.random() * list.size());
-        return list[index];
+    private static String getRandomElement(List<String> listItems) {
+        Integer index = (Integer)(Math.random() * listItems.size());
+        return listItems[index];
     }
     
     private static Integer getRandomNumber(Integer min, Integer max) {
@@ -305,8 +305,13 @@ public with sharing class DataGeneratorController {
     private static String generateEmail(String firstName, String lastName) {
         String[] domains = new String[]{'gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com.br', 'empresa.com.br'};
         String domain = getRandomElement(domains);
-        String number = String.valueOf(getRandomNumber(1, 999));
-        return firstName.toLowerCase() + '.' + lastName.toLowerCase() + number + '@' + domain;
+        String numberStr = String.valueOf(getRandomNumber(1, 999));
+        
+        // Remove acentos e normaliza para caracteres válidos em email
+        String cleanFirst = removeAccents(firstName).toLowerCase();
+        String cleanLast  = removeAccents(lastName).toLowerCase();
+        
+        return cleanFirst + '.' + cleanLast + numberStr + '@' + domain;
     }
     
     private static String generatePhone() {
@@ -332,6 +337,77 @@ public with sharing class DataGeneratorController {
             'DF', 'ES', 'MT', 'MS', 'PA', 'PB', 'AM', 'RN', 'AL', 'PI'
         };
         return getRandomElement(states);
+    }
+    
+    // Remove acentos de strings (útil para geração de emails)
+    private static String removeAccents(String value) {
+        if (String.isBlank(value)) {
+            return value;
+        }
+        
+        String result = value;
+        
+        // Minúsculas
+        result = result.replace('á', 'a');
+        result = result.replace('à', 'a');
+        result = result.replace('â', 'a');
+        result = result.replace('ã', 'a');
+        result = result.replace('ä', 'a');
+        
+        result = result.replace('é', 'e');
+        result = result.replace('è', 'e');
+        result = result.replace('ê', 'e');
+        result = result.replace('ë', 'e');
+        
+        result = result.replace('í', 'i');
+        result = result.replace('ì', 'i');
+        result = result.replace('î', 'i');
+        result = result.replace('ï', 'i');
+        
+        result = result.replace('ó', 'o');
+        result = result.replace('ò', 'o');
+        result = result.replace('ô', 'o');
+        result = result.replace('õ', 'o');
+        result = result.replace('ö', 'o');
+        
+        result = result.replace('ú', 'u');
+        result = result.replace('ù', 'u');
+        result = result.replace('û', 'u');
+        result = result.replace('ü', 'u');
+        
+        result = result.replace('ç', 'c');
+        
+        // Maiúsculas
+        result = result.replace('Á', 'A');
+        result = result.replace('À', 'A');
+        result = result.replace('Â', 'A');
+        result = result.replace('Ã', 'A');
+        result = result.replace('Ä', 'A');
+        
+        result = result.replace('É', 'E');
+        result = result.replace('È', 'E');
+        result = result.replace('Ê', 'E');
+        result = result.replace('Ë', 'E');
+        
+        result = result.replace('Í', 'I');
+        result = result.replace('Ì', 'I');
+        result = result.replace('Î', 'I');
+        result = result.replace('Ï', 'I');
+        
+        result = result.replace('Ó', 'O');
+        result = result.replace('Ò', 'O');
+        result = result.replace('Ô', 'O');
+        result = result.replace('Õ', 'O');
+        result = result.replace('Ö', 'O');
+        
+        result = result.replace('Ú', 'U');
+        result = result.replace('Ù', 'U');
+        result = result.replace('Û', 'U');
+        result = result.replace('Ü', 'U');
+        
+        result = result.replace('Ç', 'C');
+        
+        return result;
     }
 }
 

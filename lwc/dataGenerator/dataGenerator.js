@@ -28,6 +28,10 @@ export default class DataGenerator extends LightningElement {
         ];
     }
 
+    get toggleDeleteButtonLabel() {
+        return this.showDeleteSection ? 'Ocultar Exclusão' : 'Mostrar Exclusão';
+    }
+
     handleQuantityChange(event) {
         this.quantity = parseInt(event.target.value, 10);
     }
